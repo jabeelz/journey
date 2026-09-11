@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>高雄市議會第4屆第8次定期大會議事日程表</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eff6ff;
+      --secondary: #334155;
+      --border-color: #cbd5e1;
+      --bg-color: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --tag-gray: #e2e8f0;
+      --tag-gray-text: #334155;
+      --tag-red: #fee2e2;
+      --tag-red-text: #991b1b;
+      --today-bg: #fef3c7;
+      --today-border: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "微軟正黑體", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.75;
+      font-size: 18px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: #ffffff;
+      padding: 28px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.85rem;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 1.2rem;
+      opacity: 0.95;
+      font-weight: 500;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    thead th {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+      padding: 16px 20px;
+      border-bottom: 2px solid var(--border-color);
+      white-space: nowrap;
+      font-size: 1.25rem;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.2s ease-in-out;
+      scroll-margin-top: 40px; /* 捲動時保留頂部邊距 */
+    }
+
+    tbody tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    tr.off-day {
+      background-color: #fbfcfe;
+    }
+
+    /* 今日行程特別高亮 */
+    tr.is-today {
+      background-color: var(--today-bg) !important;
+      outline: 3px solid var(--today-border);
+      position: relative;
+      z-index: 2;
+    }
+
+    td {
+      padding: 16px 20px;
+      vertical-align: middle;
+    }
+
+    .date-cell {
+      white-space: nowrap;
+      font-weight: 700;
+      color: var(--secondary);
+      text-align: center;
+      width: 160px;
+      font-size: 1.15rem;
+    }
+
+    .content-cell {
+      font-size: 1.15rem;
+      line-height: 1.8;
+    }
+
+    .split-col {
+      width: 42%;
+    }
+
+    .sub-note {
+      color: var(--text-muted);
+      font-size: 1rem;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .badge-off {
+      background-color: var(--tag-red);
+      color: var(--tag-red-text);
+    }
+
+    .badge-weekend {
+      background-color: var(--tag-gray);
+      color: var(--tag-gray-text);
+    }
+
+    .badge-today {
+      background-color: #b45309;
+      color: #ffffff;
+      margin-left: 6px;
+      font-size: 0.9rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+
+    /* 浮動「回到今日」按鈕 */
+    .today-float-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e3a8a;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 30px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      z-index: 100;
+      display: none; /* 若當天在會期內由 JS 開啟顯示 */
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .today-float-btn:hover {
+      background-color: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    /* 手機版與平板直向卡片樣式 (RWD) */
+    @media (max-width: 768px) {
+      body {
+        padding: 12px 8px;
+        font-size: 17px;
+      }
+
+      header {
+        padding: 20px 14px;
+      }
+
+      header h1 {
+        font-size: 1.45rem;
+      }
+
+      header p {
+        font-size: 1.05rem;
+      }
+
+      thead {
+        display: none;
+      }
+
+      table, tbody, tr, td {
+        display: block;
+        width: 100% !important;
+      }
+
+      tbody tr {
+        margin-bottom: 16px;
+        background: #ffffff;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+        padding: 14px 16px;
+        scroll-margin-top: 20px;
+      }
+
+      tbody tr.is-today {
+        border: 2px solid var(--today-border);
+      }
+
+      td {
+        padding: 6px 0;
+        border: none;
+      }
+
+      td.date-cell {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px dashed #e2e8f0;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        text-align: left;
+        font-size: 1.25rem;
+      }
+
+      .content-cell {
+        font-size: 1.15rem;
+      }
+
+      .mobile-label {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--primary);
+        display: inline-block;
+        margin-bottom: 4px;
+      }
+
+      .today-float-btn {
+        bottom: 18px;
+        right: 18px;
+        padding: 10px 16px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>高雄市議會第4屆第8次定期大會議事日程表</h1>
+      <p>民國 115 年（上午 9:30~12:30 / 下午 2:30~6:00）</p>
+    </header>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:center;">日期 / 星期</th>
+            <th>上午（9:30~12:30）</th>
+            <th>下午（2:30~6:00）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 8月 -->
+          <tr data-date="2026-08-20">
+            <td class="date-cell">8月20日 (四)</td>
+            <td colspan="2" class="content-cell">
+              1. 報到。<br>
+              2. 預備會議（審議議事日程表、抽籤決定市長施政報告質詢及市政總質詢順序）。<br>
+              3. 議員生活座談會。
+            </td>
+          </tr>
+          <tr data-date="2026-08-21">
+            <td class="date-cell">8月21日 (五)</td>
+            <td colspan="2" class="content-cell">
+              1. 主席宣布定期大會開幕。<br>
+              2. 報告事項。<br>
+              3. 其他事項。
+            </td>
+          </tr>
+          <tr class="off-day" data-date="2026-08-22">
+            <td class="date-cell">8月22日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-08-23">
+            <td class="date-cell">8月23日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-08-24">
+            <td class="date-cell">8月24日 (一)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-off">停止上班上課</span></td>
+          </tr>
+          <tr data-date="2026-08-25">
+            <td class="date-cell">8月25日 (二)</td>
+            <td colspan="2" class="content-cell">
+              1. 審議議事日程表第一次變更草案。<br>
+              2. 其他事項。
+            </td>
+          </tr>
+          <tr data-date="2026-08-26">
+            <td class="date-cell">8月26日 (三)</td>
+            <td colspan="2" class="content-cell">市政考察。</td>
+          </tr>
+          <tr data-date="2026-08-27">
+            <td class="date-cell">8月27日 (四)</td>
+            <td colspan="2" class="content-cell">市政考察。</td>
+          </tr>
+          <tr data-date="2026-08-28">
+            <td class="date-cell">8月28日 (五)</td>
+            <td colspan="2" class="content-cell">市政考察。</td>
+          </tr>
+          <tr class="off-day" data-date="2026-08-29">
+            <td class="date-cell">8月29日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-08-30">
+            <td class="date-cell">8月30日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr data-date="2026-08-31">
+            <td class="date-cell">8月31日 (一)</td>
+            <td colspan="2" class="content-cell">市長施政報告與質詢。</td>
+          </tr>
+
+          <!-- 9月 -->
+          <tr data-date="2026-09-01">
+            <td class="date-cell">9月1日 (二)</td>
+            <td colspan="2" class="content-cell">市長施政報告質詢。</td>
+          </tr>
+          <tr data-date="2026-09-02">
+            <td class="date-cell">9月2日 (三)</td>
+            <td colspan="2" class="content-cell">
+              都市計畫委員會業務報告與質詢。<br>
+              <span class="sub-note">（各部門業務報告質詢時間：上午9時至12時30分；下午2時30分至6時）</span>
+            </td>
+          </tr>
+          <tr data-date="2026-09-03">
+            <td class="date-cell">9月3日 (四)</td>
+            <td colspan="2" class="content-cell">工務部門業務報告與質詢：<br>(1) 都市發展局。(2) 工務局。(3) 地政局。</td>
+          </tr>
+          <tr data-date="2026-09-04">
+            <td class="date-cell">9月4日 (五)</td>
+            <td colspan="2" class="content-cell">工務部門業務質詢。</td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-05">
+            <td class="date-cell">9月5日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-06">
+            <td class="date-cell">9月6日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr data-date="2026-09-07">
+            <td class="date-cell">9月7日 (一)</td>
+            <td colspan="2" class="content-cell">民政部門業務報告與質詢：<br>(1) 行政暨國際處。(2) 民政局。(3) 法制局。(4) 研究發展考核委員會。(5) 人事處。(6) 政風處。</td>
+          </tr>
+          <tr data-date="2026-09-08">
+            <td class="date-cell">9月8日 (二)</td>
+            <td colspan="2" class="content-cell">民政部門業務質詢。</td>
+          </tr>
+          <tr data-date="2026-09-09">
+            <td class="date-cell">9月9日 (三)</td>
+            <td colspan="2" class="content-cell">社政部門業務報告與質詢：<br>(1) 社會局。(2) 勞工局。(3) 原住民事務委員會。(4) 客家事務委員會。</td>
+          </tr>
+          <tr data-date="2026-09-10">
+            <td class="date-cell">9月10日 (四)</td>
+            <td colspan="2" class="content-cell">社政部門業務質詢。</td>
+          </tr>
+          <tr data-date="2026-09-11">
+            <td class="date-cell">9月11日 (五)</td>
+            <td colspan="2" class="content-cell">財經部門業務報告與質詢：<br>(1) 財政局。(2) 經濟發展局。(3) 主計處。(4) 青年局。</td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-12">
+            <td class="date-cell">9月12日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-13">
+            <td class="date-cell">9月13日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr data-date="2026-09-14">
+            <td class="date-cell">9月14日 (一)</td>
+            <td colspan="2" class="content-cell">財經部門業務質詢。</td>
+          </tr>
+          <tr data-date="2026-09-15">
+            <td class="date-cell">9月15日 (二)</td>
+            <td colspan="2" class="content-cell">教育部門業務報告與質詢：<br>(1) 教育局。(2) 文化局。(3) 新聞局。(4) 運動發展局。(5) 空中大學。</td>
+          </tr>
+          <tr data-date="2026-09-16">
+            <td class="date-cell">9月16日 (三)</td>
+            <td colspan="2" class="content-cell">教育部門業務質詢。</td>
+          </tr>
+          <tr data-date="2026-09-17">
+            <td class="date-cell">9月17日 (四)</td>
+            <td colspan="2" class="content-cell">農林部門業務報告與質詢：<br>(1) 海洋局。(2) 農業局。(3) 水利局。</td>
+          </tr>
+          <tr data-date="2026-09-18">
+            <td class="date-cell">9月18日 (五)</td>
+            <td colspan="2" class="content-cell">農林部門業務質詢。</td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-19">
+            <td class="date-cell">9月19日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-20">
+            <td class="date-cell">9月20日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr data-date="2026-09-21">
+            <td class="date-cell">9月21日 (一)</td>
+            <td colspan="2" class="content-cell">交通部門業務報告與質詢：<br>(1) 觀光局。(2) 捷運工程局。(3) 交通局。</td>
+          </tr>
+          <tr data-date="2026-09-22">
+            <td class="date-cell">9月22日 (二)</td>
+            <td colspan="2" class="content-cell">交通部門業務質詢。</td>
+          </tr>
+          <tr data-date="2026-09-23">
+            <td class="date-cell">9月23日 (三)</td>
+            <td colspan="2" class="content-cell">警消衛環部門業務報告與質詢：<br>(1) 警察局。(2) 消防局。(3) 衛生局。(4) 環境保護局。(5) 毒品防制局。</td>
+          </tr>
+          <tr data-date="2026-09-24">
+            <td class="date-cell">9月24日 (四)</td>
+            <td colspan="2" class="content-cell">警消衛環部門業務質詢。</td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-25">
+            <td class="date-cell">9月25日 (五)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-off">停會（中秋節）</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-26">
+            <td class="date-cell">9月26日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-27">
+            <td class="date-cell">9月27日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-09-28">
+            <td class="date-cell">9月28日 (一)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-off">停會（教師節）</span></td>
+          </tr>
+          <tr data-date="2026-09-29">
+            <td class="date-cell">9月29日 (二)</td>
+            <td colspan="2" class="content-cell">
+              1. 聽取報告：<br>
+              &emsp;(1) 聽取116年度高雄市政府施政計畫與高雄市總預算案暨附屬單位預算案編製經過。<br>
+              &emsp;(2) 聽取114年度高雄市總決算暨附屬單位決算及綜計表審核報告。<br>
+              2. 宣讀議案交付審查。<br>
+              3. 其他事項。<br>
+              4. 分組審查。
+            </td>
+          </tr>
+          <tr data-date="2026-09-30">
+            <td class="date-cell">9月30日 (三)</td>
+            <td class="split-col content-cell">
+              <div class="mobile-label">上午：</div>
+              市政總質詢。<br>
+              <span class="sub-note">（時間：上午9時至11時50分；下午3時至5時50分，上、下午各3位議員質詢，每位質詢50分鐘）</span>
+            </td>
+            <td class="split-col content-cell">
+              <div class="mobile-label">下午：</div>
+              市政總質詢。
+            </td>
+          </tr>
+
+          <!-- 10月 -->
+          <tr data-date="2026-10-01">
+            <td class="date-cell">10月1日 (四)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr data-date="2026-10-02">
+            <td class="date-cell">10月2日 (五)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-03">
+            <td class="date-cell">10月3日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-04">
+            <td class="date-cell">10月4日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr data-date="2026-10-05">
+            <td class="date-cell">10月5日 (一)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr data-date="2026-10-06">
+            <td class="date-cell">10月6日 (二)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr data-date="2026-10-07">
+            <td class="date-cell">10月7日 (三)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr data-date="2026-10-08">
+            <td class="date-cell">10月8日 (四)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-09">
+            <td class="date-cell">10月9日 (五)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-off">停會（調整放假）</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-10">
+            <td class="date-cell">10月10日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-off">停會（國慶日）</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-11">
+            <td class="date-cell">10月11日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr data-date="2026-10-12">
+            <td class="date-cell">10月12日 (一)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr data-date="2026-10-13">
+            <td class="date-cell">10月13日 (二)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr data-date="2026-10-14">
+            <td class="date-cell">10月14日 (三)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr data-date="2026-10-15">
+            <td class="date-cell">10月15日 (四)</td>
+            <td class="split-col content-cell"><div class="mobile-label">上午：</div>市政總質詢。</td>
+            <td class="split-col content-cell"><div class="mobile-label">下午：</div>市政總質詢。</td>
+          </tr>
+          <tr data-date="2026-10-16">
+            <td class="date-cell">10月16日 (五)</td>
+            <td colspan="2" class="content-cell">
+              1. 聽取報告：<br>
+              &emsp;(1) 聽取116年度高雄市政府施政計畫與高雄市總預算案暨附屬單位預算案編製經過。<br>
+              &emsp;(2) 聽取114年度高雄市總決算暨附屬單位決算及綜計表審核報告。<br>
+              2. 宣讀議案交付審查。<br>
+              3. 其他事項。<br>
+              4. 分組審查。
+            </td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-17">
+            <td class="date-cell">10月17日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-18">
+            <td class="date-cell">10月18日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr data-date="2026-10-19">
+            <td class="date-cell">10月19日 (一)</td>
+            <td colspan="2" class="content-cell">
+              1. 聽取報告：<br>
+              &emsp;(1) 聽取116年度高雄市政府施政計畫與高雄市總預算案暨附屬單位預算案編製經過。<br>
+              &emsp;(2) 聽取114年度高雄市總決算暨附屬單位決算及綜計表審核報告。<br>
+              2. 宣讀議案交付審查。<br>
+              3. 其他事項。<br>
+              4. 分組審查。
+            </td>
+          </tr>
+          <tr data-date="2026-10-20">
+            <td class="date-cell">10月20日 (二)</td>
+            <td colspan="2" class="content-cell">
+              1. 聽取報告：<br>
+              &emsp;(1) 聽取116年度高雄市政府施政計畫與高雄市總預算案暨附屬單位預算案編製經過。<br>
+              &emsp;(2) 聽取114年度高雄市總決算暨附屬單位決算及綜計表審核報告。<br>
+              2. 宣讀議案交付審查。<br>
+              3. 其他事項。<br>
+              4. 分組審查。
+            </td>
+          </tr>
+          <tr data-date="2026-10-21">
+            <td class="date-cell">10月21日 (三)</td>
+            <td colspan="2" class="content-cell">
+              1. 二、三讀會：<br>
+              &emsp;(1) 審議114年度高雄市總決算暨附屬單位決算及綜計表審核報告案。<br>
+              &emsp;(2) 審議116年度高雄市總預算案暨附屬單位預算案。<br>
+              &emsp;(3) 審議本市116年度總預算編列公債及賒借收入案。<br>
+              &emsp;(4) 審議市政府提案。<br>
+              &emsp;(5) 審議議員提案。<br>
+              2. 其他事項。
+            </td>
+          </tr>
+          <tr data-date="2026-10-22">
+            <td class="date-cell">10月22日 (四)</td>
+            <td colspan="2" class="content-cell">
+              1. 二、三讀會：<br>
+              &emsp;(1) 審議114年度高雄市總決算暨附屬單位決算及綜計表審核報告案。<br>
+              &emsp;(2) 審議116年度高雄市總預算案暨附屬單位預算案。<br>
+              &emsp;(3) 審議本市116年度總預算編列公債及賒借收入案。<br>
+              &emsp;(4) 審議市政府提案。<br>
+              &emsp;(5) 審議議員提案。<br>
+              2. 其他事項。
+            </td>
+          </tr>
+          <tr data-date="2026-10-23">
+            <td class="date-cell">10月23日 (五)</td>
+            <td colspan="2" class="content-cell">
+              1. 二、三讀會：<br>
+              &emsp;(1) 審議114年度高雄市總決算暨附屬單位決算及綜計表審核報告案。<br>
+              &emsp;(2) 審議116年度高雄市總預算案暨附屬單位預算案。<br>
+              &emsp;(3) 審議本市116年度總預算編列公債及賒借收入案。<br>
+              &emsp;(4) 審議市政府提案。<br>
+              &emsp;(5) 審議議員提案。<br>
+              2. 其他事項。
+            </td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-24">
+            <td class="date-cell">10月24日 (六)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-weekend">停會</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-25">
+            <td class="date-cell">10月25日 (日)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-off">停會（臺灣光復暨金門古寧頭大捷紀念日）</span></td>
+          </tr>
+          <tr class="off-day" data-date="2026-10-26">
+            <td class="date-cell">10月26日 (一)</td>
+            <td colspan="2" class="content-cell"><span class="badge badge-off">停會（調整放假）</span></td>
+          </tr>
+          <tr data-date="2026-10-27">
+            <td class="date-cell">10月27日 (二)</td>
+            <td colspan="2" class="content-cell">
+              1. 二、三讀會：<br>
+              &emsp;(1) 審議114年度高雄市總決算暨附屬單位決算及綜計表審核報告案。<br>
+              &emsp;(2) 審議116年度高雄市總預算案暨附屬單位預算案。<br>
+              &emsp;(3) 審議本市116年度總預算編列公債及賒借收入案。<br>
+              &emsp;(4) 審議市政府提案。<br>
+              &emsp;(5) 審議議員提案。<br>
+              2. 其他事項。
+            </td>
+          </tr>
+          <tr data-date="2026-10-28">
+            <td class="date-cell">10月28日 (三)</td>
+            <td colspan="2" class="content-cell">
+              1. 二、三讀會。<br>
+              2. 報告事項。<br>
+              3. 其他事項。<br>
+              4. 主席宣布定期大會閉幕。
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 快速回到今日浮動按鈕 -->
+  <button id="scrollToTodayBtn" class="today-float-btn" onclick="scrollToToday()">📍 移至今日</button>
+
+  <script>
+    function getTodayString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    let todayElement = null;
+
+    function initTodayHighlight() {
+      const todayStr = getTodayString();
+      todayElement = document.querySelector(`tr[data-date="${todayStr}"]`);
+
+      if (todayElement) {
+        // 標記高亮樣式
+        todayElement.classList.add('is-today');
+
+        // 在日期旁附加「今日」標籤
+        const dateCell = todayElement.querySelector('.date-cell');
+        if (dateCell) {
+          const badge = document.createElement('span');
+          badge.className = 'badge-today';
+          badge.textContent = '今日';
+          dateCell.appendChild(badge);
+        }
+
+        // 顯示右下角浮動按鈕
+        const btn = document.getElementById('scrollToTodayBtn');
+        if (btn) btn.style.display = 'block';
+
+        // 頁面加載完成後平滑捲動至今日
+        setTimeout(() => {
+          todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      }
+    }
+
+    function scrollToToday() {
+      if (todayElement) {
+        todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // 網頁載入時執行
+    window.addEventListener('DOMContentLoaded', initTodayHighlight);
+  </script>
+</body>
+</html>
